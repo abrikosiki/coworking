@@ -19,7 +19,7 @@ function getColor(id: string) {
 
 type Profile = {
   id: string;
-  full_name: string;
+  name: string;
   specialization: string;
   email?: string;
   checkin_at: string | null;
@@ -61,9 +61,9 @@ export default function DashboardPage() {
   const loadProfiles = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, full_name, specialization, checkin_at, role")
+      .select("id, name, specialization, checkin_at, role")
       .eq("role", "member")
-      .order("full_name");
+      .order("name");
 
     const all = data || [];
     setProfiles(all);
@@ -107,7 +107,7 @@ export default function DashboardPage() {
   };
 
   const filtered = profiles.filter(m =>
-    m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    m.name?.toLowerCase().includes(search.toLowerCase()) ||
     m.specialization?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -215,11 +215,11 @@ export default function DashboardPage() {
                   <div key={m.id} style={{ ...s.row, opacity: m.status === "blocked" ? 0.5 : 1 }}>
                     <div style={s.rowLeft}>
                       <div style={{ ...s.avatar, background: color + "22", border: `2px solid ${color}44` }}>
-                        <span style={{ ...s.avatarText, color }}>{getInitials(m.full_name)}</span>
+                        <span style={{ ...s.avatarText, color }}>{getInitials(m.name)}</span>
                         {m.checkin_at && <div style={s.onlineDot} />}
                       </div>
                       <div>
-                        <div style={s.memberName}>{m.full_name}</div>
+                        <div style={s.memberName}>{m.name}</div>
                         <div style={s.memberSub}>{m.specialization || "Member"}</div>
                       </div>
                     </div>

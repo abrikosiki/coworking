@@ -24,7 +24,7 @@ function getColor(id: string) {
 
 type Profile = {
   id: string;
-  full_name: string;
+  name: string;
   specialization: string;
   checkin_at: string | null;
 };
@@ -69,7 +69,7 @@ export default function HomePage() {
   const loadProfiles = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, full_name, specialization, checkin_at")
+      .select("id, name, specialization, checkin_at")
       .not("checkin_at", "is", null)
       .order("checkin_at", { ascending: false });
 
@@ -182,13 +182,13 @@ export default function HomePage() {
                 <a key={profile.id} href={`/users/${profile.id}`} style={{ ...s.card, animationDelay: `${i * 0.06}s`, textDecoration: "none" }}>
                   <div style={s.cardTop}>
                     <div style={{ ...s.avatar, background: color + "22", border: `2px solid ${color}44` }}>
-                      <span style={{ ...s.avatarText, color }}>{getInitials(profile.full_name)}</span>
+                      <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
                       <div style={s.onlineDot} />
                     </div>
                     <div style={s.since}>{profile.checkin_at ? getTimeSince(profile.checkin_at) : ""}</div>
                   </div>
                   <div style={s.cardInfo}>
-                    <div style={s.name}>{profile.full_name}</div>
+                    <div style={s.name}>{profile.name}</div>
                     <div style={{
                       ...s.role,
                       background: roleColors[profile.specialization]?.bg || "rgba(100,116,139,0.15)",

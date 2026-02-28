@@ -52,7 +52,7 @@ export default function SignupPage() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { full_name: form.name } }
+        options: { data: { name: form.name } }
       });
 
       if (authError) throw new Error(authError.message);
@@ -63,7 +63,7 @@ export default function SignupPage() {
         .from("profiles")
         .insert({
           id: authData.user.id,
-          full_name: form.name,
+          name: form.name,
           role: "member",
           specialization: form.specialization,
         });

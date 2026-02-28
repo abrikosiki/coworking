@@ -22,7 +22,7 @@ function getColor(id: string) {
 
 type Profile = {
   id: string;
-  full_name: string;
+  name: string;
   specialization: string;
   bio: string;
   email: string;
@@ -57,7 +57,7 @@ export default function ProfilePage() {
 
     const p = {
       id: user.id,
-      full_name: data?.full_name || "",
+      name: data?.name || "",
       specialization: data?.specialization || "Other",
       bio: data?.bio || "",
       email: user.email || "",
@@ -80,7 +80,7 @@ export default function ProfilePage() {
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: draft.full_name,
+        name: draft.name,
         specialization: draft.specialization,
         bio: draft.bio,
         linkedin: draft.linkedin,
@@ -146,17 +146,17 @@ export default function ProfilePage() {
           <div style={s.topSection}>
             <div style={{ position: "relative", display: "inline-block" }}>
               <div style={{ ...s.avatar, background: color + "22", border: `3px solid ${color}55` }}>
-                <span style={{ ...s.avatarText, color }}>{getInitials(profile.full_name)}</span>
+                <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
               </div>
               {profile.checkin_at && <div style={s.onlineBadge}>● Here now</div>}
             </div>
 
             <div style={s.topInfo}>
               {editing ? (
-                <input value={draft.full_name} onChange={e => setDraft({ ...draft, full_name: e.target.value })}
+                <input value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })}
                   style={s.editInput} placeholder="Your name" />
               ) : (
-                <h1 style={s.name}>{profile.full_name}</h1>
+                <h1 style={s.name}>{profile.name}</h1>
               )}
 
               {editing ? (

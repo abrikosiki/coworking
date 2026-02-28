@@ -20,11 +20,11 @@ export default function QRCheckinPage() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name, checkin_at")
+      .select("name, checkin_at")
       .eq("id", user.id)
       .single();
 
-    setUserName(profile?.full_name || "Friend");
+    setUserName(profile?.name || "Friend");
 
     if (profile?.checkin_at) {
       // Already checked in → check out

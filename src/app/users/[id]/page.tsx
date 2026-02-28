@@ -21,7 +21,7 @@ function getColor(id: string) {
 
 type Profile = {
   id: string;
-  full_name: string;
+  name: string;
   specialization: string;
   bio: string;
   linkedin: string;
@@ -118,7 +118,7 @@ export default function UserProfilePage() {
           <div style={s.heroContent}>
             <div style={s.avatarRow}>
               <div style={{ ...s.avatar, background: color + "22", border: `3px solid ${color}55` }}>
-                <span style={{ ...s.avatarText, color }}>{getInitials(profile.full_name)}</span>
+                <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
               </div>
               {profile.checkin_at && (
                 <div style={s.heroBadge}>
@@ -129,7 +129,7 @@ export default function UserProfilePage() {
             </div>
 
             <div>
-              <h1 style={s.heroName}>{profile.full_name}</h1>
+              <h1 style={s.heroName}>{profile.name}</h1>
               <div style={{
                 ...s.roleTag,
                 background: roleColors[profile.specialization]?.bg,
