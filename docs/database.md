@@ -95,6 +95,7 @@ auth.users
 | Файл | Описание |
 |------|----------|
 | `001_add_profile_columns.sql` | Добавляет колонки bio, specialization, linkedin, telegram, skills, checkin_at, status, created_at |
+| `002_fix_coworkings_table.sql` | Добавляет колонки name, city, address, admin_id в coworkings |
 
 **Как применить:** Supabase → SQL Editor → New query → вставить SQL → Run.
 

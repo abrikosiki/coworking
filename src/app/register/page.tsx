@@ -76,21 +76,38 @@ export default function AdminRegister() {
       setServerError("");
 
       try {
-        // 1. Create user in Supabase auth
+        // 1. Create user in Supabase auth (or sign in if already exists)
+        let userId: string;
+
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
           options: { data: { name: form.name } }
         });
 
-        if (authError) throw new Error(authError.message);
-        if (!authData.user) throw new Error("Failed to create account");
+        if (authError) {
+          // User already exists — try signing in to continue setup
+          if (authError.message.toLowerCase().includes("already registered")) {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: form.email,
+              password: form.password,
+            });
+            if (signInError) throw new Error("Account exists. Wrong password?");
+            if (!signInData.user) throw new Error("Failed to sign in");
+            userId = signInData.user.id;
+          } else {
+            throw new Error(authError.message);
+          }
+        } else {
+          if (!authData.user) throw new Error("Failed to create account");
+          userId = authData.user.id;
+        }
 
-        // 2. Create profile with admin role
+        // 2. Create or update profile with admin role
         const { error: profileError } = await supabase
           .from("profiles")
-          .insert({
-            id: authData.user.id,
+          .upsert({
+            id: userId,
             name: form.name,
             role: "admin",
           });
@@ -104,7 +121,7 @@ export default function AdminRegister() {
             name: form.coworkingName,
             city: form.city,
             address: form.address,
-            admin_id: authData.user.id,
+            admin_id: userId,
           });
 
         if (coworkingError) throw new Error(coworkingError.message);
