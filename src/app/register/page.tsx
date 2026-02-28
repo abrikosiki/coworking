@@ -123,14 +123,23 @@ export default function AdminRegister() {
       <div style={s.grid} />
 
       <div style={s.card}>
-        <div style={s.logo}>
-          <div style={s.logoIcon}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
+        <div style={s.topRow}>
+          <div style={s.logo}>
+            <div style={s.logoIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+            </div>
+            <span style={s.logoText}>CoWork</span>
           </div>
-          <span style={s.logoText}>CoWork</span>
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            style={s.topBackBtn}
+          >
+            ← Back
+          </button>
         </div>
 
         {step < 3 && (
@@ -263,13 +272,30 @@ const s: Record<string, React.CSSProperties> = {
     boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
     animation: "fadeUp 0.5s ease both",
   },
-  logo: { display: "flex", alignItems: "center", gap: 10, marginBottom: 28 },
+  topRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 28,
+    gap: 12,
+  },
+  logo: { display: "flex", alignItems: "center", gap: 10 },
   logoIcon: {
     width: 36, height: 36, borderRadius: 10,
     background: "linear-gradient(135deg, #a3e635, #65a30d)",
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   logoText: { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: "#f1f5f9" },
+  topBackBtn: {
+    background: "transparent",
+    border: "1px solid #1e293b",
+    borderRadius: 999,
+    padding: "6px 12px",
+    fontSize: 12,
+    color: "#64748b",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
   title: { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 24, color: "#f1f5f9", letterSpacing: "-0.5px", marginBottom: 6 },
   subtitle: { fontSize: 14, color: "#64748b", marginBottom: 28 },
   stepsRow: { display: "flex", alignItems: "center", gap: 8, marginBottom: 28 },
