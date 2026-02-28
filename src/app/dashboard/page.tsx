@@ -1,31 +1,6 @@
 "use client";
-import { useState } from "react";
-
-const STATS = [
-  { label: "Here now", value: "6", icon: "🟢", trend: "+2" },
-  { label: "Today", value: "24", icon: "📅", trend: "+8" },
-  { label: "This week", value: "142", icon: "📈", trend: "+12%" },
-  { label: "Members", value: "89", icon: "👥", trend: "+3" },
-];
-
-const WEEK_DATA = [
-  { day: "Mon", count: 18 },
-  { day: "Tue", count: 24 },
-  { day: "Wed", count: 31 },
-  { day: "Thu", count: 27 },
-  { day: "Fri", count: 35 },
-  { day: "Sat", count: 12 },
-  { day: "Sun", count: 8 },
-];
-
-const MEMBERS = [
-  { id: 1, name: "Alex Chen", role: "Developer", email: "alex@cowork.com", avatar: "AC", color: "#6366f1", status: "active", checkedIn: true },
-  { id: 2, name: "Maria Santos", role: "Designer", email: "maria@cowork.com", avatar: "MS", color: "#ec4899", status: "active", checkedIn: true },
-  { id: 3, name: "James Park", role: "Marketing", email: "james@cowork.com", avatar: "JP", color: "#f59e0b", status: "active", checkedIn: false },
-  { id: 4, name: "Lena Müller", role: "Developer", email: "lena@cowork.com", avatar: "LM", color: "#10b981", status: "active", checkedIn: true },
-  { id: 5, name: "Omar Hassan", role: "Designer", email: "omar@cowork.com", avatar: "OH", color: "#8b5cf6", status: "blocked", checkedIn: false },
-  { id: 6, name: "Yuki Tanaka", role: "Other", email: "yuki@cowork.com", avatar: "YT", color: "#14b8a6", status: "active", checkedIn: true },
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const roleColors: Record<string, { bg: string; text: string }> = {
   Developer: { bg: "rgba(99,102,241,0.15)", text: "#818cf8" },
@@ -34,28 +9,139 @@ const roleColors: Record<string, { bg: string; text: string }> = {
   Other: { bg: "rgba(20,184,166,0.15)", text: "#2dd4bf" },
 };
 
-const maxCount = Math.max(...WEEK_DATA.map(d => d.count));
+const AVATAR_COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#8b5cf6", "#14b8a6"];
+function getInitials(name: string) {
+  return name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "?";
+}
+function getColor(id: string) {
+  return AVATAR_COLORS[id?.charCodeAt(0) % AVATAR_COLORS.length] || "#6366f1";
+}
+
+type Profile = {
+  id: string;
+  full_name: string;
+  specialization: string;
+  email?: string;
+  checkin_at: string | null;
+  role: string;
+  status?: string;
+};
+
+type DayStats = { day: string; count: number };
 
 export default function DashboardPage() {
-  const [members, setMembers] = useState(MEMBERS);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [checkedIn, setCheckedIn] = useState<Profile[]>([]);
+  const [weekStats, setWeekStats] = useState<DayStats[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [unauthorized, setUnauthorized] = useState(false);
 
-  const filtered = members.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.role.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    checkAdminAndLoad();
+  }, []);
+
+  const checkAdminAndLoad = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/login"; return; }
+
+    const { data: profile } = await supabase
+      .from("profiles").select("role").eq("id", user.id).single();
+
+    if (profile?.role !== "admin") {
+      setUnauthorized(true);
+      setLoading(false);
+      return;
+    }
+
+    await Promise.all([loadProfiles(), loadWeekStats()]);
+    setLoading(false);
+  };
+
+  const loadProfiles = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name, specialization, checkin_at, role")
+      .eq("role", "member")
+      .order("full_name");
+
+    const all = data || [];
+    setProfiles(all);
+    setCheckedIn(all.filter(p => p.checkin_at));
+  };
+
+  const loadWeekStats = async () => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const stats: DayStats[] = days.map(day => ({ day, count: 0 }));
+
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const { data } = await supabase
+      .from("checkin_history")
+      .select("checked_in_at")
+      .gte("checked_in_at", weekAgo.toISOString());
+
+    if (data) {
+      data.forEach(row => {
+        const dayIdx = new Date(row.checked_in_at).getDay();
+        stats[dayIdx].count++;
+      });
+    } else {
+      // Fallback: use current checkins per day of week
+      profiles.forEach(p => {
+        if (p.checkin_at) {
+          const dayIdx = new Date(p.checkin_at).getDay();
+          stats[dayIdx].count++;
+        }
+      });
+    }
+
+    setWeekStats(stats);
+  };
+
+  const toggleBlock = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "blocked" ? "active" : "blocked";
+    await supabase.from("profiles").update({ status: newStatus }).eq("id", id);
+    setProfiles(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+  };
+
+  const filtered = profiles.filter(m =>
+    m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    m.specialization?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleBlock = (id: number) => {
-    setMembers(prev => prev.map(m =>
-      m.id === id ? { ...m, status: m.status === "blocked" ? "active" : "blocked" } : m
-    ));
-  };
+  const maxCount = Math.max(...weekStats.map(d => d.count), 1);
+
+  const STATS = [
+    { label: "Here now", value: String(checkedIn.length), icon: "🟢" },
+    { label: "Total members", value: String(profiles.length), icon: "👥" },
+    { label: "Specializations", value: String(new Set(profiles.map(p => p.specialization)).size), icon: "🎯" },
+    { label: "This week", value: String(weekStats.reduce((a, b) => a + b.count, 0) || checkedIn.length), icon: "📈" },
+  ];
+
+  if (loading) return (
+    <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={s.gridBg} />
+      <p style={{ color: "#475569", fontFamily: "'DM Sans', sans-serif" }}>Loading...</p>
+    </div>
+  );
+
+  if (unauthorized) return (
+    <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={s.gridBg} />
+      <div style={{ textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+        <p style={{ color: "#f87171", fontSize: 16, marginBottom: 12 }}>Admin access only</p>
+        <a href="/" style={{ color: "#a3e635", fontSize: 14, textDecoration: "none" }}>← Back to feed</a>
+      </div>
+    </div>
+  );
 
   return (
     <div style={s.page}>
       <div style={s.gridBg} />
 
-      {/* Header */}
       <header style={s.header}>
         <div style={s.logo}>
           <div style={s.logoIcon}>
@@ -67,15 +153,13 @@ export default function DashboardPage() {
           <span style={s.logoText}>CoWork</span>
           <span style={s.adminBadge}>Admin</span>
         </div>
-        <div style={s.headerRight}>
-          <a href="/" style={s.headerLink}>View feed →</a>
-        </div>
+        <a href="/" style={s.headerLink}>View feed →</a>
       </header>
 
       <main style={s.main}>
         <div style={s.titleRow}>
           <h1 style={s.title}>Dashboard</h1>
-          <p style={s.subtitle}>WorkHub Moscow · Today, {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
+          <p style={s.subtitle}>Today, {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
         </div>
 
         {/* Stats */}
@@ -84,7 +168,6 @@ export default function DashboardPage() {
             <div key={stat.label} style={s.statCard}>
               <div style={s.statTop}>
                 <span style={s.statIcon}>{stat.icon}</span>
-                <span style={s.statTrend}>{stat.trend}</span>
               </div>
               <div style={s.statValue}>{stat.value}</div>
               <div style={s.statLabel}>{stat.label}</div>
@@ -94,16 +177,16 @@ export default function DashboardPage() {
 
         {/* Chart */}
         <div style={s.chartCard}>
-          <h2 style={s.sectionTitle}>Visits this week</h2>
+          <h2 style={s.sectionTitle}>Activity this week</h2>
           <div style={s.chart}>
-            {WEEK_DATA.map((d) => (
+            {weekStats.map((d) => (
               <div key={d.day} style={s.chartCol}>
                 <span style={s.chartNum}>{d.count}</span>
                 <div style={s.barWrap}>
                   <div style={{
                     ...s.bar,
                     height: `${(d.count / maxCount) * 100}%`,
-                    background: d.day === "Fri" ? "#a3e635" : "rgba(163,230,53,0.25)",
+                    background: d.count === maxCount && d.count > 0 ? "#a3e635" : "rgba(163,230,53,0.25)",
                   }} />
                 </div>
                 <span style={s.chartDay}>{d.day}</span>
@@ -112,55 +195,60 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Members */}
+        {/* Members table */}
         <div style={s.tableCard}>
           <div style={s.tableHeader}>
-            <h2 style={s.sectionTitle}>Members</h2>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search..."
-              style={s.searchInput}
-            />
+            <h2 style={s.sectionTitle}>Members ({profiles.length})</h2>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search..." style={s.searchInput} />
           </div>
 
-          <div style={s.table}>
-            {filtered.map((m) => (
-              <div key={m.id} style={{ ...s.row, opacity: m.status === "blocked" ? 0.5 : 1 }}>
-                <div style={s.rowLeft}>
-                  <div style={{ ...s.avatar, background: m.color + "22", border: `2px solid ${m.color}44` }}>
-                    <span style={{ ...s.avatarText, color: m.color }}>{m.avatar}</span>
-                    {m.checkedIn && <div style={s.onlineDot} />}
+          {filtered.length === 0 ? (
+            <p style={{ color: "#334155", fontSize: 14, padding: "20px 0" }}>
+              {search ? "No members found" : "No members yet"}
+            </p>
+          ) : (
+            <div style={s.table}>
+              {filtered.map((m) => {
+                const color = getColor(m.id);
+                return (
+                  <div key={m.id} style={{ ...s.row, opacity: m.status === "blocked" ? 0.5 : 1 }}>
+                    <div style={s.rowLeft}>
+                      <div style={{ ...s.avatar, background: color + "22", border: `2px solid ${color}44` }}>
+                        <span style={{ ...s.avatarText, color }}>{getInitials(m.full_name)}</span>
+                        {m.checkin_at && <div style={s.onlineDot} />}
+                      </div>
+                      <div>
+                        <div style={s.memberName}>{m.full_name}</div>
+                        <div style={s.memberSub}>{m.specialization || "Member"}</div>
+                      </div>
+                    </div>
+                    <div style={s.rowRight}>
+                      <span style={{
+                        ...s.roleTag,
+                        background: roleColors[m.specialization]?.bg || "rgba(100,116,139,0.15)",
+                        color: roleColors[m.specialization]?.text || "#94a3b8",
+                      }}>{m.specialization || "—"}</span>
+                      <span style={{
+                        ...s.statusTag,
+                        background: m.checkin_at ? "rgba(163,230,53,0.1)" : "transparent",
+                        color: m.checkin_at ? "#a3e635" : "#334155",
+                        border: m.checkin_at ? "1px solid rgba(163,230,53,0.2)" : "1px solid #1e293b",
+                      }}>
+                        {m.checkin_at ? "● In" : "○ Out"}
+                      </span>
+                      <button onClick={() => toggleBlock(m.id, m.status || "active")} style={{
+                        ...s.actionBtn,
+                        color: m.status === "blocked" ? "#a3e635" : "#ef4444",
+                      }}>
+                        {m.status === "blocked" ? "Unblock" : "Block"}
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <div style={s.memberName}>{m.name}</div>
-                    <div style={s.memberEmail}>{m.email}</div>
-                  </div>
-                </div>
-                <div style={s.rowRight}>
-                  <span style={{
-                    ...s.roleTag,
-                    background: roleColors[m.role]?.bg,
-                    color: roleColors[m.role]?.text,
-                  }}>{m.role}</span>
-                  <span style={{
-                    ...s.statusTag,
-                    background: m.checkedIn ? "rgba(163,230,53,0.1)" : "transparent",
-                    color: m.checkedIn ? "#a3e635" : "#334155",
-                    border: m.checkedIn ? "1px solid rgba(163,230,53,0.2)" : "1px solid #1e293b",
-                  }}>
-                    {m.checkedIn ? "● In" : "○ Out"}
-                  </span>
-                  <button onClick={() => toggleBlock(m.id)} style={{
-                    ...s.actionBtn,
-                    color: m.status === "blocked" ? "#a3e635" : "#ef4444",
-                  }}>
-                    {m.status === "blocked" ? "Unblock" : "Block"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
 
@@ -200,7 +288,6 @@ const s: Record<string, React.CSSProperties> = {
     background: "rgba(163,230,53,0.1)", border: "1px solid rgba(163,230,53,0.2)",
     padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.05em",
   },
-  headerRight: { display: "flex", gap: 16, alignItems: "center" },
   headerLink: { fontSize: 13, color: "#64748b", textDecoration: "none", fontWeight: 500 },
   main: { maxWidth: 1100, margin: "0 auto", padding: "40px 32px" },
   titleRow: { marginBottom: 32 },
@@ -209,12 +296,10 @@ const s: Record<string, React.CSSProperties> = {
   statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 },
   statCard: {
     background: "rgba(15,23,42,0.9)", border: "1px solid #1e293b",
-    borderRadius: 16, padding: "20px 24px",
-    animation: "fadeUp 0.4s ease both",
+    borderRadius: 16, padding: "20px 24px", animation: "fadeUp 0.4s ease both",
   },
-  statTop: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  statTop: { marginBottom: 12 },
   statIcon: { fontSize: 20 },
-  statTrend: { fontSize: 11, color: "#a3e635", fontWeight: 700, background: "rgba(163,230,53,0.1)", padding: "2px 8px", borderRadius: 6 },
   statValue: { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: "#f1f5f9", marginBottom: 4 },
   statLabel: { fontSize: 12, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" },
   chartCard: {
@@ -235,36 +320,21 @@ const s: Record<string, React.CSSProperties> = {
   tableHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   searchInput: {
     background: "#0f172a", border: "1.5px solid #1e293b",
-    borderRadius: 8, padding: "8px 14px",
-    fontSize: 13, color: "#f1f5f9", width: 200,
+    borderRadius: 8, padding: "8px 14px", fontSize: 13, color: "#f1f5f9", width: 200,
   },
   table: { display: "flex", flexDirection: "column", gap: 4 },
   row: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "12px 16px", borderRadius: 10,
-    transition: "background 0.15s",
-    background: "rgba(255,255,255,0.02)",
+    padding: "12px 16px", borderRadius: 10, background: "rgba(255,255,255,0.02)",
   },
   rowLeft: { display: "flex", alignItems: "center", gap: 12 },
   rowRight: { display: "flex", alignItems: "center", gap: 10 },
-  avatar: {
-    width: 40, height: 40, borderRadius: 10,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    position: "relative", flexShrink: 0,
-  },
+  avatar: { width: 40, height: 40, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", flexShrink: 0 },
   avatarText: { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 12 },
-  onlineDot: {
-    position: "absolute", bottom: 1, right: 1,
-    width: 8, height: 8, borderRadius: "50%",
-    background: "#a3e635", border: "2px solid #080f1a",
-  },
+  onlineDot: { position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#a3e635", border: "2px solid #080f1a" },
   memberName: { fontSize: 14, fontWeight: 600, color: "#e2e8f0", fontFamily: "'Syne', sans-serif" },
-  memberEmail: { fontSize: 12, color: "#475569" },
+  memberSub: { fontSize: 12, color: "#475569" },
   roleTag: { padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600 },
   statusTag: { padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600 },
-  actionBtn: {
-    background: "transparent", border: "none",
-    fontSize: 12, fontWeight: 600, cursor: "pointer",
-    padding: "4px 8px",
-  },
+  actionBtn: { background: "transparent", border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "4px 8px" },
 };
