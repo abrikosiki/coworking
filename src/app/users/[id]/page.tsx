@@ -27,6 +27,7 @@ type Profile = {
   linkedin: string;
   telegram: string;
   skills: string[];
+  avatar_url: string | null;
   checkin_at: string | null;
   created_at: string;
 };
@@ -117,8 +118,12 @@ export default function UserProfilePage() {
 
           <div style={s.heroContent}>
             <div style={s.avatarRow}>
-              <div style={{ ...s.avatar, background: color + "22", border: `3px solid ${color}55` }}>
-                <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
+              <div style={{ ...s.avatar, background: color + "22", border: `3px solid ${color}55`, overflow: "hidden" }}>
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 17 }} />
+                ) : (
+                  <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
+                )}
               </div>
               {profile.checkin_at && (
                 <div style={s.heroBadge}>

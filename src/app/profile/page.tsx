@@ -29,6 +29,7 @@ type Profile = {
   linkedin: string;
   telegram: string;
   skills: string[];
+  avatar_url: string | null;
   checkin_at: string | null;
 };
 
@@ -64,6 +65,7 @@ export default function ProfilePage() {
       linkedin: data?.linkedin || "",
       telegram: data?.telegram || "",
       skills: data?.skills || [],
+      avatar_url: data?.avatar_url || null,
       checkin_at: data?.checkin_at || null,
     };
 
@@ -145,8 +147,12 @@ export default function ProfilePage() {
           {/* Top */}
           <div style={s.topSection}>
             <div style={{ position: "relative", display: "inline-block" }}>
-              <div style={{ ...s.avatar, background: color + "22", border: `3px solid ${color}55` }}>
-                <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
+              <div style={{ ...s.avatar, background: color + "22", border: `3px solid ${color}55`, overflow: "hidden" }}>
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 15 }} />
+                ) : (
+                  <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
+                )}
               </div>
               {profile.checkin_at && <div style={s.onlineBadge}>● Here now</div>}
             </div>

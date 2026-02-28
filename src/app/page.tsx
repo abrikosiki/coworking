@@ -26,6 +26,7 @@ type Profile = {
   id: string;
   name: string;
   specialization: string;
+  avatar_url: string | null;
   checkin_at: string | null;
 };
 
@@ -69,7 +70,7 @@ export default function HomePage() {
   const loadProfiles = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, specialization, checkin_at")
+      .select("id, name, specialization, avatar_url, checkin_at")
       .not("checkin_at", "is", null)
       .order("checkin_at", { ascending: false });
 
@@ -181,8 +182,12 @@ export default function HomePage() {
               return (
                 <a key={profile.id} href={`/users/${profile.id}`} style={{ ...s.card, animationDelay: `${i * 0.06}s`, textDecoration: "none" }}>
                   <div style={s.cardTop}>
-                    <div style={{ ...s.avatar, background: color + "22", border: `2px solid ${color}44` }}>
-                      <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
+                    <div style={{ ...s.avatar, background: color + "22", border: `2px solid ${color}44`, overflow: "hidden" }}>
+                      {profile.avatar_url ? (
+                        <img src={profile.avatar_url} alt={profile.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <span style={{ ...s.avatarText, color }}>{getInitials(profile.name)}</span>
+                      )}
                       <div style={s.onlineDot} />
                     </div>
                     <div style={s.since}>{profile.checkin_at ? getTimeSince(profile.checkin_at) : ""}</div>
