@@ -38,17 +38,18 @@ related_files: [docs/architecture.md, sql/, src/lib/supabase.ts]
 
 | Колонка | Тип | Default | Nullable | Описание |
 |---------|-----|---------|----------|----------|
-| `id` | uuid | — | NOT NULL | PK, FK → `auth.users.id` |
-| `full_name` | text | — | YES | Имя пользователя |
-| `role` | text | — | YES | `'admin'` или `'member'` |
+| `id` | uuid | — | NOT NULL | PK, FK → `auth.users.id` ON DELETE CASCADE |
+| `name` | text | — | NOT NULL | Имя пользователя |
+| `role` | text | `'member'` | NOT NULL | `'admin'` или `'member'` (CHECK constraint) |
 | `specialization` | text | — | YES | Developer / Designer / Marketing / Other |
+| `avatar_url` | text | — | YES | URL аватарки |
 | `bio` | text | — | YES | О себе |
 | `linkedin` | text | — | YES | Ссылка на LinkedIn |
 | `telegram` | text | — | YES | Telegram-хендл |
 | `skills` | text[] | `'{}'::text[]` | YES | Массив навыков |
 | `checkin_at` | timestamptz | — | YES | Время чекина (NULL = не в коворкинге) |
-| `status` | text | `'active'` | YES | Статус пользователя |
 | `created_at` | timestamptz | `now()` | NOT NULL | Дата создания профиля |
+| `updated_at` | timestamptz | `now()` | NOT NULL | Дата обновления (триггер) |
 
 **Операции в коде:**
 - `INSERT` — при регистрации (`signup`, `register`): `id`, `full_name`, `role`, `specialization`
@@ -66,13 +67,21 @@ related_files: [docs/architecture.md, sql/, src/lib/supabase.ts]
 
 | Колонка | Тип | Default | Nullable | Описание |
 |---------|-----|---------|----------|----------|
-| `name` | text | — | YES | Название коворкинга |
-| `city` | text | — | YES | Город |
-| `address` | text | — | YES | Адрес |
-| `admin_id` | uuid | — | YES | FK → `profiles.id`, владелец |
+| `id` | uuid | `gen_random_uuid()` | NOT NULL | PK |
+| `owner_id` | uuid | — | NOT NULL | FK → `profiles.id` ON DELETE CASCADE, владелец |
+| `name` | text | — | NOT NULL | Название коворкинга |
+| `city` | text | — | NOT NULL | Город |
+| `address` | text | — | NOT NULL | Адрес |
+| `created_at` | timestamptz | `now()` | NOT NULL | Дата создания |
+| `updated_at` | timestamptz | `now()` | NOT NULL | Дата обновления |
+
+**RLS-политики:**
+- SELECT: все authenticated
+- INSERT: `auth.uid() = owner_id`
+- UPDATE: `auth.uid() = owner_id`
 
 **Операции в коде:**
-- `INSERT` — при регистрации админа: `name`, `city`, `address`, `admin_id`
+- `INSERT` — при регистрации админа: `name`, `city`, `address`, `owner_id`
 
 ---
 
@@ -83,7 +92,7 @@ auth.users
     │
     └── 1:1 ── profiles (profiles.id = auth.users.id)
                     │
-                    └── 1:N ── coworkings (coworkings.admin_id = profiles.id)
+                    └── 1:N ── coworkings (coworkings.owner_id = profiles.id)
 ```
 
 ---
@@ -95,7 +104,6 @@ auth.users
 | Файл | Описание |
 |------|----------|
 | `001_add_profile_columns.sql` | Добавляет колонки bio, specialization, linkedin, telegram, skills, checkin_at, status, created_at |
-| `002_fix_coworkings_table.sql` | Добавляет колонки name, city, address, admin_id в coworkings |
 
 **Как применить:** Supabase → SQL Editor → New query → вставить SQL → Run.
 

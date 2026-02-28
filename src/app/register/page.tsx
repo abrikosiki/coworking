@@ -121,7 +121,7 @@ export default function AdminRegister() {
             name: form.coworkingName,
             city: form.city,
             address: form.address,
-            admin_id: userId,
+            owner_id: userId,
           });
 
         if (coworkingError) throw new Error(coworkingError.message);
