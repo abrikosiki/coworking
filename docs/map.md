@@ -16,12 +16,15 @@ related_files: [AGENTS.md]
 |----------|--------|----------|
 | `map.md` | **active** | Карта документации проекта — статусы, связи code↔docs, навигация для AI-агентов |
 | `architecture.md` | **active** | Архитектура проекта: БД, сущности, структура приложения |
+| `database.md` | **active** | Полная схема базы данных Supabase — таблицы, колонки, связи, миграции |
 
 ## Code → Docs
 
 | Код | Документация |
 |-----|-------------|
 | `src/app/` (Next.js App Router) | `architecture.md` |
+| `sql/` (миграции БД) | `database.md` |
+| `src/lib/supabase.ts` | `database.md` |
 
 ## Структура папок
 
@@ -29,6 +32,7 @@ related_files: [AGENTS.md]
 docs/
 ├── map.md              ← ты здесь
 ├── architecture.md
+├── database.md
 ```
 
 ## Правила обновления
