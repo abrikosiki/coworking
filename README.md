@@ -1,36 +1,201 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CoWork
 
-## Getting Started
+Приложение для коворкинга на Next.js + Supabase. Деплоится на DigitalOcean.
 
-First, run the development server:
+## Разработка
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Цветовые темы
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Приложение поддерживает **6 цветовых тем**, переключаемых через выпадающий список в шапке сайта (между счётчиком онлайн и кнопкой Check-in). Выбранная тема сохраняется в `localStorage`.
 
-## Learn More
+### Доступные темы
 
-To learn more about Next.js, take a look at the following resources:
+| Тема | Тип | Основной цвет | Описание |
+|------|-----|---------------|----------|
+| **Original** (по умолчанию) | Тёмная | `#a3e635` лайм | Оригинальная тёмная тема CoWork |
+| **Lime** | Тёмная | `#BEF264` яркий лайм | Тёмный фон с яркими лаймовыми акцентами |
+| **Midnight** | Тёмная | `#d946ef` фуксия | Киберпанк-стиль, фиолетовая палитра |
+| **Forest** | Тёмная | `#34d399` изумруд | Глубокие зелёные тона |
+| **Swiss** | Светлая | `#2563eb` синий | Чистая корпоративная светлая тема |
+| **Paper** | Светлая | `#ea580c` оранжевый | Тёплая светлая тема с бумажным оттенком |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Как работает
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Темы реализованы через **CSS-переменные** в `src/app/globals.css`. Каждая тема задаёт 9 переменных:
 
-## Deploy on Vercel
+| Переменная | Назначение |
+|------------|------------|
+| `--bg-color` | Фон страницы |
+| `--surface-color` | Фон карточек и панелей |
+| `--surface-hover` | Hover-состояние карточек |
+| `--primary-color` | Акцентный цвет (кнопки, подсветка) |
+| `--primary-fg` | Текст на акцентных элементах |
+| `--text-main` | Основной текст |
+| `--text-muted` | Второстепенный текст |
+| `--border-color` | Рамки и разделители |
+| `--grid-color` | Декоративная фоновая сетка |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Переменные подключены к Tailwind CSS v4 через `@theme inline`, что позволяет использовать утилиты: `bg-background`, `bg-surface`, `text-text-main`, `text-primary`, `border-border` и т.д.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Переключение темы
+
+Тема применяется через атрибут `data-theme` на `<html>`:
+
+```js
+// Установить тему
+document.documentElement.setAttribute("data-theme", "midnight");
+
+// Сбросить на дефолтную (Original)
+document.documentElement.removeAttribute("data-theme");
+```
+
+### Как добавить новую тему
+
+1. Добавить блок `[data-theme="имя-темы"]` в `src/app/globals.css` с 9 CSS-переменными
+2. Добавить запись в массив `THEMES` в `src/app/page.tsx`:
+   ```ts
+   { id: "имя-темы", name: "Название", color: "#hex-цвет" }
+   ```
+
+---
+
+## Структура проекта
+
+```
+src/
+├── app/
+│   ├── globals.css          # Определения тем + конфиг Tailwind
+│   ├── layout.tsx           # Корневой layout (Inter, Font Awesome)
+│   ├── page.tsx             # Главная лента (кто сейчас здесь)
+│   ├── login/page.tsx       # Авторизация
+│   ├── signup/page.tsx      # Регистрация пользователя
+│   ├── register/page.tsx    # Регистрация админа/владельца
+│   ├── profile/page.tsx     # Редактирование профиля
+│   ├── users/[id]/page.tsx  # Публичный профиль пользователя
+│   ├── dashboard/page.tsx   # Админ-панель
+│   ├── checkin/page.tsx     # Страница чекина
+│   └── qr/page.tsx          # QR-код
+└── lib/
+    └── supabase.ts          # Supabase клиент
+```
+
+## UI-компоненты
+
+- **Header** — логотип, счётчик онлайн, дропдаун тем, ссылка на профиль, кнопка check-in
+- **Hero-секция** — заголовок с gradient-glow эффектом
+- **Фильтры** — фильтрация по специализации (Developer, Designer, Marketing, Other)
+- **Карточки пользователей** — аватар (фото или инициалы), имя, бейдж роли, индикатор онлайн, время с момента чекина
+- **Invite-карточка** — пунктирная карточка для приглашения друзей
+- **Фоновая сетка** — декоративная сетка с маской затухания
+
+## Стек технологий
+
+- **Next.js 16** — App Router
+- **React 19** — клиентские компоненты с хуками
+- **Tailwind CSS v4** — утилитарные стили с CSS-переменными для тем
+- **Supabase** — Auth, PostgreSQL, Realtime-подписки
+- **Inter** — основной шрифт (Google Fonts CDN)
+- **Font Awesome 6** — иконки (CDN)
+
+---
+
+## CI/CD Pipeline
+
+Пайплайн настроен в `.github/workflows/ci.yml`. При каждом пуше в `main` запускаются два этапа:
+
+### 1. Build (автоматически)
+
+Запускается на каждый `git push` в ветку `main`:
+- Устанавливает зависимости (`npm ci`)
+- Проверяет код линтером (`npm run lint`)
+- Собирает приложение (`npm run build`)
+
+Если этот этап упал — значит в коде есть ошибки, деплой не произойдёт.
+
+### 2. Deploy (по кнопке)
+
+Запускается **только после успешного Build** и **только после ручного подтверждения** (если настроен environment `production` с required reviewers).
+
+Что делает:
+- Подключается к серверу по SSH (167.71.216.32)
+- Выполняет: `git pull` -> `npm ci` -> `npm run build` -> `systemctl restart coworking`
+
+### Как посмотреть статус
+
+1. Открыть https://github.com/abrikosiki/coworking/actions
+2. Увидишь список запусков пайплайна
+3. Зелёная галочка = всё ОК, красный крестик = ошибка (нажми чтобы увидеть логи)
+
+### GitHub Secrets (уже настроены)
+
+| Secret | Описание |
+|--------|----------|
+| `SSH_PRIVATE_KEY` | SSH ключ для доступа к серверу |
+| `SSH_HOST` | IP адрес сервера (167.71.216.32) |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Публичный ключ Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Сервисный ключ Supabase |
+
+### Настройка ручного деплоя (Environment Protection)
+
+По умолчанию deploy запускается автоматически после успешного build. Чтобы деплой требовал ручного подтверждения — нужно настроить GitHub Environment. Подробная инструкция ниже.
+
+---
+
+## Инструкция: настройка деплоя по кнопке
+
+> Эту настройку может выполнить только **владелец репозитория** (аккаунт `abrikosiki`).
+> Нужно сделать один раз, потом всё будет работать автоматически.
+
+### Шаг 1. Открой настройки репозитория
+
+1. Открой в браузере: https://github.com/abrikosiki/coworking
+2. Нажми вкладку **Settings** (шестерёнка, в верхнем меню репозитория)
+
+### Шаг 2. Создай environment
+
+1. В левом боковом меню найди раздел **Environments** (в блоке "Code and automation")
+2. Нажми кнопку **New environment**
+3. В поле Name введи: `production` (именно так, маленькими буквами)
+4. Нажми **Configure environment**
+
+### Шаг 3. Включи обязательное подтверждение
+
+1. На странице настройки environment поставь галочку **Required reviewers**
+2. В поле поиска начни вводить свой GitHub логин (например `abrikosiki` или `petrovMA`)
+3. Выбери нужного пользователя из выпадающего списка — он будет подтверждать деплой
+4. Можно добавить нескольких reviewers
+5. Нажми **Save protection rules**
+
+### Готово!
+
+Теперь при каждом пуше в main:
+1. **Build** запустится автоматически (lint + сборка)
+2. Если build прошёл, **Deploy** покажет статус "Waiting" с кнопкой
+3. Reviewer получит уведомление на email
+4. Reviewer нажимает **Review deployments** -> выбирает `production` -> **Approve and deploy**
+5. Деплой начнётся автоматически
+
+### Как подтвердить деплой (каждый раз)
+
+1. Открой https://github.com/abrikosiki/coworking/actions
+2. Нажми на последний запуск пайплайна (CI/CD)
+3. Увидишь job `deploy` со статусом "Waiting"
+4. Нажми **Review deployments**
+5. Поставь галочку на `production`
+6. Нажми **Approve and deploy**
+7. Подожди пока деплой завершится (обычно ~1 минута)
+8. Проверь сайт: https://coworking-facely.duckdns.org
+
+### Если что-то пошло не так
+
+- **Build упал** — посмотри логи ошибок в GitHub Actions, исправь код и сделай новый push
+- **Deploy упал** — проверь что сервер доступен, SSH ключ валиден
+- **Сайт не открывается после деплоя** — зайди на сервер по SSH и проверь `systemctl status coworking`
