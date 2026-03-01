@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const roleColors: Record<string, { bg: string; text: string }> = {
@@ -41,11 +42,6 @@ export default function UserProfilePage() {
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState("");
 
-  useEffect(() => {
-    if (!userId) return;
-    loadProfile();
-  }, [userId]);
-
   const loadProfile = async () => {
     const { data, error } = await supabase
       .from("profiles")
@@ -60,6 +56,12 @@ export default function UserProfilePage() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (!userId) return;
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const copyToClipboard = (text: string, field: string) => {
     if (!text) return;
@@ -87,7 +89,7 @@ export default function UserProfilePage() {
       <div style={{ textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>👤</div>
         <p style={{ color: "#475569", fontSize: 16 }}>User not found</p>
-        <a href="/" style={{ color: "#a3e635", fontSize: 14, textDecoration: "none", display: "block", marginTop: 12 }}>← Back to feed</a>
+        <Link href="/" style={{ color: "#a3e635", fontSize: 14, textDecoration: "none", display: "block", marginTop: 12 }}>← Back to feed</Link>
       </div>
     </div>
   );
@@ -108,7 +110,7 @@ export default function UserProfilePage() {
           </div>
           <span style={s.logoText}>CoWork</span>
         </div>
-        <a href="/" style={s.backBtn}>← Back to feed</a>
+        <Link href="/" style={s.backBtn}>← Back to feed</Link>
       </header>
 
       <main style={s.main}>

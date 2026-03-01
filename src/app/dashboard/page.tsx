@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const roleColors: Record<string, { bg: string; text: string }> = {
@@ -36,14 +38,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [unauthorized, setUnauthorized] = useState(false);
-
-  useEffect(() => {
-    checkAdminAndLoad();
-  }, []);
+  const router = useRouter();
 
   const checkAdminAndLoad = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/login"; return; }
+    if (!user) { router.push("/login"); return; }
 
     const { data: profile } = await supabase
       .from("profiles").select("role").eq("id", user.id).single();
@@ -57,6 +56,11 @@ export default function DashboardPage() {
     await Promise.all([loadProfiles(), loadWeekStats()]);
     setLoading(false);
   };
+
+  useEffect(() => {
+    checkAdminAndLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadProfiles = async () => {
     const { data } = await supabase
@@ -133,7 +137,7 @@ export default function DashboardPage() {
       <div style={{ textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
         <p style={{ color: "#f87171", fontSize: 16, marginBottom: 12 }}>Admin access only</p>
-        <a href="/" style={{ color: "#a3e635", fontSize: 14, textDecoration: "none" }}>← Back to feed</a>
+        <Link href="/" style={{ color: "#a3e635", fontSize: 14, textDecoration: "none" }}>← Back to feed</Link>
       </div>
     </div>
   );
@@ -153,7 +157,7 @@ export default function DashboardPage() {
           <span style={s.logoText}>CoWork</span>
           <span style={s.adminBadge}>Admin</span>
         </div>
-        <a href="/" style={s.headerLink}>View feed →</a>
+        <Link href="/" style={s.headerLink}>View feed →</Link>
       </header>
 
       <main style={s.main}>

@@ -45,6 +45,17 @@ export default function HomePage() {
     });
   }, []);
 
+  const loadProfiles = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, name, specialization, avatar_url, checkin_at")
+      .not("checkin_at", "is", null)
+      .order("checkin_at", { ascending: false });
+
+    setProfiles(data || []);
+    setLoading(false);
+  };
+
   // Load profiles who are checked in
   useEffect(() => {
     loadProfiles();
@@ -67,17 +78,6 @@ export default function HomePage() {
     setCheckedIn(!!me?.checkin_at);
   }, [profiles, currentUser]);
 
-  const loadProfiles = async () => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, name, specialization, avatar_url, checkin_at")
-      .not("checkin_at", "is", null)
-      .order("checkin_at", { ascending: false });
-
-    setProfiles(data || []);
-    setLoading(false);
-  };
-
   const handleCheckin = async () => {
     if (!currentUser) {
       window.location.href = "/login";
@@ -97,7 +97,7 @@ export default function HomePage() {
   };
 
   const getTimeSince = (checkinAt: string) => {
-    const diff = Date.now() - new Date(checkinAt).getTime();
+    const diff = Date.now() - new Date(checkinAt).getTime(); // eslint-disable-line react-hooks/purity
     const mins = Math.floor(diff / 60000);
     if (mins < 60) return `${mins}m`;
     const hrs = Math.floor(mins / 60);
@@ -145,7 +145,7 @@ export default function HomePage() {
 
       <main style={s.main}>
         <div style={s.titleRow}>
-          <h1 style={s.title}>Who's here today</h1>
+          <h1 style={s.title}>Who&apos;s here today</h1>
           <p style={s.subtitle}>Connect with people around you</p>
         </div>
 

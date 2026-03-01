@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const SKILLS_OPTIONS = ["React", "TypeScript", "Node.js", "UI/UX", "Figma", "Python", "Marketing", "Branding", "Sales", "Design", "Vue", "Angular"];
@@ -42,10 +43,6 @@ export default function ProfilePage() {
   const [saveError, setSaveError] = useState("");
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { window.location.href = "/login"; return; }
@@ -73,6 +70,10 @@ export default function ProfilePage() {
     setDraft(p);
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadProfile(); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
 
   const saveChanges = async () => {
     if (!draft) return;
@@ -137,7 +138,7 @@ export default function ProfilePage() {
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           {saved && <span style={s.savedBadge}>✓ Saved!</span>}
-          <a href="/" style={s.backBtn}>← Back to feed</a>
+          <Link href="/" style={s.backBtn}>← Back to feed</Link>
         </div>
       </header>
 

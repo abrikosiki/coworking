@@ -5,11 +5,6 @@ export default function QRDisplayPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const checkinUrl = typeof window !== "undefined" ? `${window.location.origin}/checkin` : "";
 
-  useEffect(() => {
-    if (!canvasRef.current || !checkinUrl) return;
-    generateQR(checkinUrl, canvasRef.current);
-  }, [checkinUrl]);
-
   const generateQR = (text: string, canvas: HTMLCanvasElement) => {
     // Simple QR code using a public API rendered on canvas via image
     const size = 280;
@@ -23,6 +18,11 @@ export default function QRDisplayPage() {
     img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=0f172a&color=a3e635&margin=10`;
     img.onload = () => ctx.drawImage(img, 0, 0);
   };
+
+  useEffect(() => {
+    if (!canvasRef.current || !checkinUrl) return;
+    generateQR(checkinUrl, canvasRef.current);
+  }, [checkinUrl]);
 
   return (
     <div style={s.page}>

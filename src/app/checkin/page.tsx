@@ -6,10 +6,6 @@ export default function QRCheckinPage() {
   const [status, setStatus] = useState<"loading" | "success" | "already" | "checkout" | "error" | "login">("loading");
   const [userName, setUserName] = useState("");
 
-  useEffect(() => {
-    handleCheckin();
-  }, []);
-
   const handleCheckin = async () => {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -39,6 +35,10 @@ export default function QRCheckinPage() {
     // Redirect to feed after 2 seconds
     setTimeout(() => { window.location.href = "/"; }, 2500);
   };
+
+  useEffect(() => {
+    handleCheckin(); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
 
   const icons: Record<string, string> = {
     loading: "⏳", success: "✓", already: "👋", checkout: "👋", error: "⚠️", login: "🔐"

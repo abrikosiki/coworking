@@ -94,7 +94,7 @@ export default function SignupPage() {
           </div>
           <div style={s.success}>
             <div style={s.successIcon}>✓</div>
-            <h2 style={s.successTitle}>You're in! 🎉</h2>
+            <h2 style={s.successTitle}>You&apos;re in! 🎉</h2>
             <p style={s.successText}>
               Welcome, <strong style={{ color: "#a3e635" }}>{form.name}</strong>!<br />
               Check <strong style={{ color: "#e2e8f0" }}>{form.email}</strong> to confirm your account.
