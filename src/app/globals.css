@@ -1,26 +1,146 @@
 @import "tailwindcss";
 
+/* ── Theme Definitions ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Default — Original CoWork Dark (pre-redesign) */
+  --bg-color: #080f1a;
+  --surface-color: rgba(15, 23, 42, 0.8);
+  --surface-hover: #1e293b;
+  --primary-color: #a3e635;
+  --primary-fg: #0f172a;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #1e293b;
+  --grid-color: rgba(163, 230, 53, 0.03);
 }
 
+[data-theme="lime"] {
+  /* Dark Lime (from new design) */
+  --bg-color: #0B0E14;
+  --surface-color: #151A23;
+  --surface-hover: #1E2532;
+  --primary-color: #BEF264;
+  --primary-fg: #000000;
+  --text-main: #FFFFFF;
+  --text-muted: #9CA3AF;
+  --border-color: #27272A;
+  --grid-color: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="midnight"] {
+  --bg-color: #0f0518;
+  --surface-color: #1a0b2e;
+  --surface-hover: #261042;
+  --primary-color: #d946ef;
+  --primary-fg: #ffffff;
+  --text-main: #e9d5ff;
+  --text-muted: #a855f7;
+  --border-color: #4a044e;
+  --grid-color: rgba(217, 70, 239, 0.05);
+}
+
+[data-theme="forest"] {
+  --bg-color: #022c22;
+  --surface-color: #064e3b;
+  --surface-hover: #065f46;
+  --primary-color: #34d399;
+  --primary-fg: #022c22;
+  --text-main: #ecfdf5;
+  --text-muted: #6ee7b7;
+  --border-color: #065f46;
+  --grid-color: rgba(52, 211, 153, 0.05);
+}
+
+[data-theme="swiss"] {
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --surface-hover: #f1f5f9;
+  --primary-color: #2563eb;
+  --primary-fg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --grid-color: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="paper"] {
+  --bg-color: #fffbeb;
+  --surface-color: #ffffff;
+  --surface-hover: #fff7ed;
+  --primary-color: #ea580c;
+  --primary-fg: #ffffff;
+  --text-main: #451a03;
+  --text-muted: #9a3412;
+  --border-color: #fed7aa;
+  --grid-color: rgba(234, 88, 12, 0.03);
+}
+
+/* ── Tailwind v4 Theme Tokens ── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-color);
+  --color-surface: var(--surface-color);
+  --color-surface-hover: var(--surface-hover);
+  --color-primary: var(--primary-color);
+  --color-primary-fg: var(--primary-fg);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-grid: var(--grid-color);
+  --font-sans: "Inter", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ── Base Styles ── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: "Inter", sans-serif;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* ── Grid Background ── */
+.grid-bg {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+}
+
+/* ── Card Hover ── */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary-color) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-fade-up {
+  animation: fadeUp 0.4s ease both;
 }
