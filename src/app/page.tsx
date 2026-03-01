@@ -136,7 +136,7 @@ export default function HomePage() {
   };
 
   const getTimeSince = (checkinAt: string) => {
-    const diff = Date.now() - new Date(checkinAt).getTime();
+    const diff = Date.now() - new Date(checkinAt).getTime(); // eslint-disable-line react-hooks/purity
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return "Just now";
     if (mins < 60) return `${mins}m`;
