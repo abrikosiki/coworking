@@ -15,7 +15,7 @@ const EyeIcon = ({ open }: { open: boolean }) =>
     </svg>
   );
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -53,13 +53,13 @@ export default function LoginPage() {
       return;
     }
 
-    if (profile?.role === "admin") {
+    if (profile?.role !== "admin") {
       await supabase.auth.signOut();
-      setError("This is user login. Please use admin login.");
+      setError("This login is only for admins.");
       return;
     }
 
-    window.location.href = "/";
+    window.location.href = "/dashboard";
   };
 
   return (
@@ -77,15 +77,15 @@ export default function LoginPage() {
           <span style={s.logoText}>CoWork</span>
         </div>
 
-        <h1 style={s.title}>Member login</h1>
-        <p style={s.subtitle}>Sign in as coworking user</p>
+        <h1 style={s.title}>Admin login</h1>
+        <p style={s.subtitle}>Sign in to manage your coworking</p>
 
         <div style={s.form}>
           <div style={s.fieldWrap}>
-            <label style={s.label}>Email</label>
+            <label style={s.label}>Admin email</label>
             <input
               type="email"
-              placeholder="you@cowork.com"
+              placeholder="admin@cowork.com"
               value={email}
               onChange={e => { setEmail(e.target.value); setError(""); }}
               style={{ ...s.input, borderColor: error ? "#f87171" : "#1e293b" }}
@@ -115,7 +115,7 @@ export default function LoginPage() {
           )}
 
           <button onClick={handleLogin} disabled={loading} style={s.btn}>
-            {loading ? <span style={s.spinner} /> : "Sign in as user →"}
+            {loading ? <span style={s.spinner} /> : "Sign in as admin →"}
           </button>
 
           <div style={s.divider}>
@@ -125,8 +125,8 @@ export default function LoginPage() {
           </div>
 
           <p style={s.bottomText}>
-            New member?{" "}
-            <a href="/signup" style={s.link}>Create account</a>
+            Register new coworking?{" "}
+            <a href="/register" style={s.link}>Admin sign up</a>
           </p>
         </div>
       </div>

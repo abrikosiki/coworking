@@ -43,6 +43,11 @@ export default function ProfilePage() {
   const [saveError, setSaveError] = useState("");
   const [saved, setSaved] = useState(false);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { window.location.href = "/login"; return; }
@@ -136,7 +141,7 @@ export default function ProfilePage() {
           </div>
           <span style={s.logoText}>CoWork</span>
         </div>
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {saved && <span style={s.savedBadge}>✓ Saved!</span>}
           <Link href="/" style={s.backBtn}>← Back to feed</Link>
         </div>
@@ -237,21 +242,26 @@ export default function ProfilePage() {
                 <div key={key} style={s.contactRow}>
                   <span style={s.contactIcon}>{icon}</span>
                   {editing && !readOnly ? (
-                    <input value={(draft as Record<string, string>)[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })}
+                    <input value={(draft as Record<string, any>)[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })}
                       style={s.editInputSmall} placeholder={placeholder} />
                   ) : (
-                    <span style={s.contactValue}>{(profile as Record<string, string>)[key] || <span style={{ color: "#334155" }}>—</span>}</span>
+                    <span style={s.contactValue}>{(profile as Record<string, any>)[key] || <span style={{ color: "#334155" }}>—</span>}</span>
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          {editing && (
-            <button onClick={() => { setDraft(profile); setEditing(false); }} style={s.cancelBtn}>
-              Cancel
+          <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+            {editing && (
+              <button onClick={() => { setDraft(profile); setEditing(false); }} style={{ ...s.cancelBtn, flex: 1, marginTop: 0 }}>
+                Cancel
+              </button>
+            )}
+            <button onClick={handleLogout} style={{ ...s.logoutBtnBottom, flex: 1, marginTop: 0 }}>
+              Log out
             </button>
-          )}
+          </div>
         </div>
       </main>
 
@@ -287,6 +297,11 @@ const s: Record<string, React.CSSProperties> = {
   logoText: { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 18, color: "#f1f5f9" },
   backBtn: { fontSize: 13, color: "#64748b", textDecoration: "none", fontWeight: 500 },
   savedBadge: { fontSize: 12, color: "#a3e635", fontWeight: 600, background: "rgba(163,230,53,0.1)", padding: "4px 10px", borderRadius: 6 },
+  logoutBtnBottom: {
+    width: "100%", background: "rgba(248,113,113,0.05)", border: "1.5px solid rgba(248,113,113,0.2)",
+    borderRadius: 10, padding: "11px", color: "#f87171", fontSize: 13, cursor: "pointer",
+    marginTop: 8, transition: "all 0.2s", fontWeight: 500,
+  },
   main: { maxWidth: 600, margin: "0 auto", padding: "40px 24px" },
   card: {
     background: "rgba(15,23,42,0.9)", border: "1px solid #1e293b", borderRadius: 20, padding: "32px",

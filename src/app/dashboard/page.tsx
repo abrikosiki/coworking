@@ -40,6 +40,11 @@ export default function DashboardPage() {
   const [unauthorized, setUnauthorized] = useState(false);
   const router = useRouter();
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
   const checkAdminAndLoad = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
@@ -157,7 +162,10 @@ export default function DashboardPage() {
           <span style={s.logoText}>CoWork</span>
           <span style={s.adminBadge}>Admin</span>
         </div>
-        <Link href="/" style={s.headerLink}>View feed →</Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Link href="/" style={s.headerLink}>View feed →</Link>
+          <button onClick={handleLogout} style={s.logoutBtn}>Log out</button>
+        </div>
       </header>
 
       <main style={s.main}>
@@ -293,6 +301,15 @@ const s: Record<string, React.CSSProperties> = {
     padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.05em",
   },
   headerLink: { fontSize: 13, color: "#64748b", textDecoration: "none", fontWeight: 500 },
+  logoutBtn: {
+    padding: "7px 14px",
+    borderRadius: 999,
+    border: "1px solid #1e293b",
+    background: "transparent",
+    color: "#64748b",
+    fontSize: 12,
+    cursor: "pointer",
+  },
   main: { maxWidth: 1100, margin: "0 auto", padding: "40px 32px" },
   titleRow: { marginBottom: 32 },
   title: { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: "#f1f5f9", letterSpacing: "-0.5px", marginBottom: 6 },

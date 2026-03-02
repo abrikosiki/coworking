@@ -126,7 +126,7 @@ export default function AdminRegister() {
 
         if (coworkingError) throw new Error(coworkingError.message);
 
-        setStep(3);
+        window.location.href = "/dashboard";
       } catch (err: unknown) {
         setServerError(err instanceof Error ? err.message : "Something went wrong");
       } finally {

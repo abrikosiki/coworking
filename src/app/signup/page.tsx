@@ -2,7 +2,18 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const SPECIALIZATIONS = ["Developer", "Designer", "Marketing", "Other"];
+const SPECIALIZATIONS = [
+  "Developer",
+  "Designer",
+  "Product Manager",
+  "Project Manager",
+  "Marketing",
+  "Content Creator",
+  "Startup Founder",
+  "Business Consultant",
+  "Data Analyst",
+  "Other"
+];
 
 const EyeIcon = ({ open }: { open: boolean }) =>
   open ? (
@@ -24,6 +35,8 @@ export default function SignupPage() {
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [customSpec, setCustomSpec] = useState("");
+  const [isSpecOpen, setIsSpecOpen] = useState(false);
 
   const update = (field: string, value: string) => {
     setForm(f => ({ ...f, [field]: value }));
@@ -36,13 +49,18 @@ export default function SignupPage() {
     if (!form.name.trim()) e.name = "Enter your name";
     if (!form.email.includes("@")) e.email = "Invalid email";
     if (form.password.length < 8) e.password = "Minimum 8 characters";
-    if (!form.specialization) e.specialization = "Pick your specialization";
+
+    const finalSpec = form.specialization === "Other" ? customSpec : form.specialization;
+    if (!finalSpec.trim()) e.specialization = "Pick or enter your specialization";
+
     return e;
   };
 
   const handleSignup = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+
+    const finalSpec = form.specialization === "Other" ? customSpec : form.specialization;
 
     setLoading(true);
     setServerError("");
@@ -65,12 +83,12 @@ export default function SignupPage() {
           id: authData.user.id,
           name: form.name,
           role: "member",
-          specialization: form.specialization,
+          specialization: finalSpec,
         });
 
       if (profileError) throw new Error(profileError.message);
 
-      setDone(true);
+      window.location.href = "/";
     } catch (err: unknown) {
       setServerError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -163,18 +181,61 @@ export default function SignupPage() {
           {/* Specialization */}
           <div style={s.fieldWrap}>
             <label style={s.label}>I am a...</label>
-            <div style={s.specRow}>
-              {SPECIALIZATIONS.map(spec => (
-                <button key={spec} onClick={() => update("specialization", spec)} style={{
-                  ...s.specBtn,
-                  background: form.specialization === spec ? "rgba(163,230,53,0.15)" : "rgba(255,255,255,0.03)",
-                  color: form.specialization === spec ? "#a3e635" : "#475569",
-                  border: form.specialization === spec ? "1.5px solid rgba(163,230,53,0.4)" : "1.5px solid #1e293b",
-                }}>
-                  {spec}
-                </button>
-              ))}
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => setIsSpecOpen(!isSpecOpen)}
+                style={{
+                  ...s.input,
+                  textAlign: "left", display: "flex", justifyContent: "space-between",
+                  alignItems: "center", cursor: "pointer",
+                  borderColor: errors.specialization ? "#f87171" : "#1e293b"
+                }}
+              >
+                <span style={{ color: form.specialization ? "#f1f5f9" : "#475569" }}>
+                  {form.specialization || "Select specialization"}
+                </span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isSpecOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              {isSpecOpen && (
+                <div style={s.dropdownMenu}>
+                  {SPECIALIZATIONS.map(spec => (
+                    <div
+                      key={spec}
+                      className="dropdown-item"
+                      onClick={() => {
+                        update("specialization", spec);
+                        setIsSpecOpen(false);
+                      }}
+                      style={{
+                        padding: "10px 14px", fontSize: 14,
+                        color: form.specialization === spec ? "#a3e635" : "#cbd5e1",
+                        cursor: "pointer",
+                        background: form.specialization === spec ? "rgba(163,230,53,0.08)" : "transparent",
+                        borderBottom: "1px solid #1e293b"
+                      }}
+                    >
+                      {spec}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+            {form.specialization === "Other" && (
+              <input
+                type="text"
+                placeholder="e.g. Sales Manager"
+                value={customSpec}
+                onChange={e => {
+                  setCustomSpec(e.target.value);
+                  setErrors(err => ({ ...err, specialization: "" }));
+                }}
+                style={{ ...s.input, borderColor: errors.specialization && !customSpec.trim() ? "#f87171" : "#1e293b", marginTop: 8 }}
+              />
+            )}
             {errors.specialization && <span style={s.error}>{errors.specialization}</span>}
           </div>
 
@@ -205,6 +266,8 @@ const cssReset = `
   input:focus { outline: none; border-color: #a3e635 !important; box-shadow: 0 0 0 3px rgba(163,230,53,0.15); }
   @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .dropdown-item { transition: background 0.2s; }
+  .dropdown-item:hover { background: rgba(255,255,255,0.06) !important; }
 `;
 
 const s: Record<string, React.CSSProperties> = {
@@ -257,6 +320,12 @@ const s: Record<string, React.CSSProperties> = {
   errorBox: {
     background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)",
     borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#f87171",
+  },
+  dropdownMenu: {
+    position: "absolute", top: "100%", left: 0, right: 0, marginTop: 6,
+    background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10,
+    maxHeight: 220, overflowY: "auto", zIndex: 10,
+    boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
   },
   btn: {
     background: "#a3e635", color: "#0f172a", border: "none", borderRadius: 10,
