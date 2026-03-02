@@ -208,7 +208,7 @@ export default function HomePage() {
               <span style={s.textGradient}>modern coworking</span>
             </h1>
             <p style={s.heroSubtitle}>
-              Whether you're an independent professional looking to connect, or a space owner building a community.
+              Whether you&apos;re an independent professional looking to connect, or a space owner building a community.
             </p>
           </div>
 
@@ -224,7 +224,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h2 style={s.offerTitle}>For Coworkers</h2>
-              <p style={s.offerDesc}>Check in to your space, discover who's around you, and network with other professionals.</p>
+              <p style={s.offerDesc}>Check in to your space, discover who&apos;s around you, and network with other professionals.</p>
               <ul style={s.offerList}>
                 <li>✓ See who is currently working</li>
                 <li>✓ Filter by specializations</li>
@@ -300,8 +300,8 @@ export default function HomePage() {
                     key={theme.id}
                     onClick={() => applyTheme(theme.id)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${currentTheme === theme.id
-                        ? "text-primary bg-surface-hover"
-                        : "text-text-muted hover:text-text-main hover:bg-surface-hover"
+                      ? "text-primary bg-surface-hover"
+                      : "text-text-muted hover:text-text-main hover:bg-surface-hover"
                       }`}
                   >
                     <span
@@ -327,8 +327,8 @@ export default function HomePage() {
             onClick={handleCheckin}
             disabled={checkingIn}
             className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-opacity shadow-lg cursor-pointer ${checkedIn
-                ? "bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25"
-                : "bg-primary text-primary-fg hover:opacity-90 shadow-primary/20"
+              ? "bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25"
+              : "bg-primary text-primary-fg hover:opacity-90 shadow-primary/20"
               }`}
           >
             {checkingIn ? "..." : checkedIn ? (
@@ -364,8 +364,8 @@ export default function HomePage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${filter === f
-                    ? "bg-primary text-primary-fg shadow-lg shadow-primary/10 hover:scale-105"
-                    : "bg-surface border border-border text-text-muted hover:border-primary hover:text-text-main hover:bg-surface-hover"
+                  ? "bg-primary text-primary-fg shadow-lg shadow-primary/10 hover:scale-105"
+                  : "bg-surface border border-border text-text-muted hover:border-primary hover:text-text-main hover:bg-surface-hover"
                   }`}
               >
                 {f}

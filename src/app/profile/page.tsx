@@ -32,6 +32,7 @@ type Profile = {
   skills: string[];
   avatar_url: string | null;
   checkin_at: string | null;
+  [key: string]: string | string[] | null; // Allow string index signature
 };
 
 export default function ProfilePage() {
@@ -242,10 +243,10 @@ export default function ProfilePage() {
                 <div key={key} style={s.contactRow}>
                   <span style={s.contactIcon}>{icon}</span>
                   {editing && !readOnly ? (
-                    <input value={(draft as Record<string, any>)[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })}
+                    <input value={(draft as Record<string, string>)[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })}
                       style={s.editInputSmall} placeholder={placeholder} />
                   ) : (
-                    <span style={s.contactValue}>{(profile as Record<string, any>)[key] || <span style={{ color: "#334155" }}>—</span>}</span>
+                    <span style={s.contactValue}>{(profile as Record<string, string>)[key] || <span style={{ color: "#334155" }}>—</span>}</span>
                   )}
                 </div>
               ))}
